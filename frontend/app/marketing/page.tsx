@@ -134,7 +134,7 @@ export default function MarketingDashboard() {
 
       <section className="pt-4 pb-5 px-6">
         <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
-          <motion.div initial={fadeUp.hidden} animate={fadeUp.visible} transition={transition.base}>
+          <motion.div initial={fadeUp.hidden} animate={fadeUp.visible} transition={transition}>
             <div className="flex items-center gap-2 mb-0.5">
               <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center">
                 <Megaphone className="w-4 h-4 text-violet-600" />

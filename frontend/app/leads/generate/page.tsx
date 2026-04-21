@@ -133,14 +133,14 @@ export default function GenerateLeadsPage() {
 
           <motion.h1
             initial={fadeUp.hidden} animate={fadeUp.visible}
-            transition={{ ...transition.base, delay: 0.1 }}
+            transition={{ ...transition, delay: 0.1 }}
             className="text-3xl font-normal leading-[1.15] tracking-tight text-black mb-3"
           >
             Generate Targeted Leads
           </motion.h1>
           <motion.p
             initial={fadeUp.hidden} animate={fadeUp.visible}
-            transition={{ ...transition.base, delay: 0.2 }}
+            transition={{ ...transition, delay: 0.2 }}
             className="text-sm text-[#7a8899] leading-relaxed"
           >
             Describe your target business. AI scrapes Google Maps, enriches each contact,

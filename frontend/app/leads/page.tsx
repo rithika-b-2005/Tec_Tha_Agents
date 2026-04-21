@@ -134,7 +134,7 @@ export default function LeadsDashboard() {
       {/* Page header */}
       <section className="pt-4 pb-5 px-6">
         <div className="max-w-7xl mx-auto flex items-start justify-between gap-4">
-          <motion.div initial={fadeUp.hidden} animate={fadeUp.visible} transition={transition.base}>
+          <motion.div initial={fadeUp.hidden} animate={fadeUp.visible} transition={transition}>
             <h1 className="text-2xl font-semibold text-gray-900">Lead Dashboard</h1>
             <p className="text-sm text-gray-400 mt-0.5">
               AI-generated leads — scraped, enriched, scored &amp; emailed automatically

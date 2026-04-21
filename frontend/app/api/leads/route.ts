@@ -72,19 +72,23 @@ export async function POST(request: Request) {
 
     let lead
     if (email) {
-      lead = await prisma.lead.upsert({
-        where: { email },
-        update: {
-          score:                data.score,
-          icpLabel:             data.icpLabel,
-          companyBio:           data.companyBio,
-          automationOpportunity: data.automationOpportunity,
-          emailSubject:         data.emailSubject,
-          emailBody:            data.emailBody,
-          processedAt:          data.processedAt,
-        },
-        create: { ...data, email },
-      })
+      const existing = await prisma.lead.findFirst({ where: { email } })
+      if (existing) {
+        lead = await prisma.lead.update({
+          where: { id: existing.id },
+          data: {
+            score:                data.score,
+            icpLabel:             data.icpLabel,
+            companyBio:           data.companyBio,
+            automationOpportunity: data.automationOpportunity,
+            emailSubject:         data.emailSubject,
+            emailBody:            data.emailBody,
+            processedAt:          data.processedAt,
+          },
+        })
+      } else {
+        lead = await prisma.lead.create({ data: { ...data, email } })
+      }
     } else {
       lead = await prisma.lead.create({ data: { ...data, email: null } })
     }
