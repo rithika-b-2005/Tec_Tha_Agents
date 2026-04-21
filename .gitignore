@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.env
+.env.local
+*.log
+frontend/lib/generated/prisma/
+frontend/tsconfig.tsbuildinfo
+n8n-*.json

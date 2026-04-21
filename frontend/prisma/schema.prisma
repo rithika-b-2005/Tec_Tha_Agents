@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String         @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String?        @unique
+  phone          String?        @unique
+  company        String?
+  password       String
+  role           String         @default("user")
+  platformAccess String[]       @default(["ai-automation"])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  refreshTokens  RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id                      String   @id @default(cuid())
+  name                    String
+  email                   String?
+  phone                   String?
+  company                 String?
+  website                 String?
+  title                   String?
+  location                String?
+  industry                String?
+  source                  String?
+  linkedinUrl             String?
+  score                   Int?
+  icpLabel                String?
+  companyBio              String?
+  automationOpportunity   String?
+  leadContext             String?
+  outreachLine            String?
+  emailSubject            String?
+  emailBody               String?
+  notes                   String?
+  processedAt             DateTime?
+  outreachStatus          String?
+  createdAt               DateTime @default(now())
+}
+
+model MarketingLead {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  company       String?
+  website       String?
+  location      String?
+  industry      String?
+  source        String?
+  score         Int?
+  icpLabel      String?
+  companyBio    String?
+  campaignIdea  String?
+  contentAngle  String?
+  adCopy        String?
+  emailSubject  String?
+  emailBody     String?
+  notes         String?
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+}
+
+model SalesLead {
+  id              String    @id @default(cuid())
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  website         String?
+  location        String?
+  industry        String?
+  source          String?
+  score           Int?
+  icpLabel        String?
+  companyBio      String?
+  painPoint       String?
+  salesPitch      String?
+  proposalSummary String?
+  emailSubject    String?
+  emailBody       String?
+  notes           String?
+  processedAt     DateTime?
+  createdAt       DateTime  @default(now())
+}

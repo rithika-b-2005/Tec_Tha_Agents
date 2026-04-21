@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+html {
+  scroll-padding-top: 72px;
+  scroll-behavior: smooth;
+}
+
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+@theme inline {
+  --font-sans: var(--font-titillium-web), sans-serif;
+}
+
+@layer base {
+  * {
+    outline: none;
+  }
+  button, [role="button"] {
+    cursor: pointer;
+  }
+  body {
+    font-family: var(--font-titillium-web), sans-serif;
+  }
+}
