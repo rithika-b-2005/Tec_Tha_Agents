@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { enrichContact } from "@/lib/enrichment"
 import { sendColdOutreachEmail } from "@/lib/email"
 
 export const maxDuration = 120
@@ -24,11 +25,14 @@ interface SerperPlace {
   title?: string
   address?: string
   phone?: string
+  phoneNumber?: string
   website?: string
   rating?: number
   ratingCount?: number
   category?: string
   type?: string
+  types?: string[]
+  description?: string
 }
 
 interface Enriched {
@@ -42,7 +46,7 @@ interface Enriched {
 
 async function searchPlaces(query: string, num: number): Promise<SerperPlace[]> {
   if (!SERPER_KEY) throw new Error("SERPER_API_KEY not set in .env")
-  const res = await fetch("https://google.serper.dev/places", {
+  const res = await fetch("https://google.serper.dev/maps", {
     method: "POST",
     headers: { "X-API-KEY": SERPER_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ q: query, num }),
@@ -168,13 +172,18 @@ export async function POST(request: Request) {
 
     for (const p of uniquePlaces) {
       const name     = p.title    || "Business"
-      const phone    = p.phone    || null
+      const phone    = p.phoneNumber || p.phone || null
       const website  = p.website  || null
       const loc      = p.address  || null
       const industry = p.category || p.type || "general"
       const rating   = p.rating   || null
 
       console.log(`[lead-gen] Processing: ${name} | ${phone} | ${website}`)
+
+      // Waterfall enrichment — get email, phone, company data from multiple APIs
+      const contactData = await enrichContact(website, name)
+      const enrichedEmail = contactData.email
+      const enrichedPhone = contactData.phone || phone
 
       const enriched = await enrichWithOpenAI(p, yourService, senderName, senderCompany)
       const score    = Math.min(100, Math.max(0, parseInt(String(enriched.icpScore ?? 20))))
@@ -193,23 +202,25 @@ export async function POST(request: Request) {
 
         const leadData = {
           name,
-          phone,
+          email:                 enrichedEmail,
+          phone:                 enrichedPhone,
           company:               name,
           website,
           location:              loc,
-          industry,
-          source:                "serper_maps",
+          industry:              contactData.industry || industry,
+          source:                `serper_maps+${contactData.source}`,
+          linkedinUrl:           contactData.linkedinUrl || null,
           score,
           icpLabel,
           companyBio:            enriched.companyBio            || null,
           automationOpportunity: enriched.automationOpportunity || null,
           emailSubject:          enriched.emailSubject          || null,
           emailBody:             enriched.emailBody             || null,
-          notes:                 `${industry} | Rating:${rating ?? "N/A"} | ${loc ?? ""}`.trim(),
+          notes:                 `${contactData.industry || industry} | Rating:${rating ?? "N/A"} | ${loc ?? ""}${contactData.companySize ? " | " + contactData.companySize : ""}`.trim(),
           processedAt:           new Date(),
         }
 
-        const saved = await prisma.lead.create({ data: { ...leadData, email: null } })
+        const saved = await prisma.lead.create({ data: leadData })
         savedLeads.push(saved)
 
         if (sendEmail && enriched.emailBody && phone) {
@@ -219,10 +230,13 @@ export async function POST(request: Request) {
         await tg(
           `🎯 <b>${icpLabel} (${score}/100)</b>\n` +
           `🏢 <b>${name}</b>\n` +
-          `📱 ${phone || "No phone"}\n` +
+          `📧 ${enrichedEmail || "No email"}\n` +
+          `📱 ${enrichedPhone || "No phone"}\n` +
           `🌐 ${website || "N/A"}\n` +
           `📍 ${loc || "N/A"}\n` +
-          `🏭 ${industry}\n\n` +
+          `🏭 ${contactData.industry || industry}\n` +
+          `🔗 ${contactData.linkedinUrl || "No LinkedIn"}\n` +
+          `📊 Source: ${contactData.source}\n\n` +
           `${enriched.companyBio || ""}\n\n` +
           `📧 <b>Subject:</b> ${enriched.emailSubject || "N/A"}\n✅ Saved`
         )
