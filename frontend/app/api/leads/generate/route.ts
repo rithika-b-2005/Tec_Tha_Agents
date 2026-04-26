@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { enrichContact } from "@/lib/enrichment"
+import { enrichContact, findLinkedInCompany, findLinkedInPeople, detectNeedSignals } from "@/lib/enrichment"
 import { sendColdOutreachEmail } from "@/lib/email"
 
 export const maxDuration = 120
@@ -38,6 +38,7 @@ interface SerperPlace {
 interface Enriched {
   companyBio?: string
   automationOpportunity?: string
+  needSignal?: string
   icpScore?: number | string
   icpLabel?: string
   emailSubject?: string
@@ -61,7 +62,8 @@ async function enrichWithOpenAI(
   place: SerperPlace,
   yourService: string,
   senderName: string,
-  senderCompany: string
+  senderCompany: string,
+  needSignals: string | null
 ): Promise<Enriched> {
   if (!OPENAI_KEY) return {}
   try {
@@ -85,14 +87,16 @@ async function enrichWithOpenAI(
               `- Industry: ${place.category || place.type || "general"}\n` +
               `- Location: ${place.address || "N/A"}\n` +
               `- Rating: ${place.rating || "N/A"}/5 (${place.ratingCount || 0} reviews)\n` +
-              `- Website: ${place.website || "N/A"}\n\n` +
+              `- Website: ${place.website ? place.website : "NONE — no website detected"}\n` +
+              `- Active Need Signals: ${needSignals || "None explicitly detected"}\n\n` +
               `Return JSON with these exact keys:\n` +
-              `- companyBio: 2 sentences about the company\n` +
-              `- automationOpportunity: 1 sentence on how ${yourService} helps them specifically\n` +
-              `- icpScore: integer 0-100. Base it on: rating (4.5+ = higher), review count (200+ = higher), has website (+10), industry fit. DO NOT give every lead the same score — vary realistically.\n` +
+              `- companyBio: 2 sentences about the company based on their industry and location\n` +
+              `- automationOpportunity: 1 sentence on how ${yourService} helps them specifically, referencing their signals\n` +
+              `- needSignal: 1-2 sentences explaining why this company likely needs ${yourService} RIGHT NOW. Reference any of: missing website, low review count, hiring activity, expansion plans, or low rating. Be specific and confident.\n` +
+              `- icpScore: integer 0-100. Rules: no website = +25; under 10 reviews = +20; rating 4.5+ = +15; active hiring in signals = +20; expansion in signals = +15; rating below 3.5 = -10. Add a baseline of 30. Cap at 100. Vary scores — not every lead should score 65-75.\n` +
               `- icpLabel: "Hot" if score>=70, "Warm" if 40-69, "Cold" if <40\n` +
-              `- emailSubject: short compelling subject line\n` +
-              `- emailBody: 3 paragraphs, conversational, reference their specific business name and location, clear CTA for 15-min call`,
+              `- emailSubject: short compelling subject line that references their specific situation (missing website, growth, etc.)\n` +
+              `- emailBody: 3 paragraphs, conversational tone. Para 1: reference their specific business name, location, and a pain point from their signals. Para 2: explain how ${yourService} addresses that specific pain. Para 3: clear CTA for 15-min call. Never use placeholder text.`,
           },
         ],
         max_tokens: 900,
@@ -185,7 +189,21 @@ export async function POST(request: Request) {
       const enrichedEmail = contactData.email
       const enrichedPhone = contactData.phone || phone
 
-      const enriched = await enrichWithOpenAI(p, yourService, senderName, senderCompany)
+      // Need signal detection (Serper organic search)
+      const needSignals = await detectNeedSignals(name, loc || location, website)
+      console.log(`[lead-gen] Need signals for ${name}:`, needSignals || "none")
+
+      // LinkedIn discovery (Serper organic search)
+      const [companyLinkedIn, peopleLinkedIns] = await Promise.all([
+        findLinkedInCompany(name),
+        findLinkedInPeople(name),
+      ])
+      // Resolve final linkedinUrl: prefer enrichment provider result, fallback to Serper discovery
+      const linkedinUrl = contactData.linkedinUrl
+        || companyLinkedIn
+        || (peopleLinkedIns.length > 0 ? peopleLinkedIns[0] : null)
+
+      const enriched = await enrichWithOpenAI(p, yourService, senderName, senderCompany, needSignals)
       const score    = Math.min(100, Math.max(0, parseInt(String(enriched.icpScore ?? 20))))
       const icpLabel = enriched.icpLabel || (score >= 70 ? "Hot" : score >= 40 ? "Warm" : "Cold")
 
@@ -209,11 +227,12 @@ export async function POST(request: Request) {
           location:              loc,
           industry:              contactData.industry || industry,
           source:                `serper_maps+${contactData.source}`,
-          linkedinUrl:           contactData.linkedinUrl || null,
+          linkedinUrl:           linkedinUrl,
           score,
           icpLabel,
           companyBio:            enriched.companyBio            || null,
           automationOpportunity: enriched.automationOpportunity || null,
+          needSignals:           enriched.needSignal            || needSignals || null,
           emailSubject:          enriched.emailSubject          || null,
           emailBody:             enriched.emailBody             || null,
           notes:                 `${contactData.industry || industry} | Rating:${rating ?? "N/A"} | ${loc ?? ""}${contactData.companySize ? " | " + contactData.companySize : ""}`.trim(),
@@ -235,7 +254,8 @@ export async function POST(request: Request) {
           `🌐 ${website || "N/A"}\n` +
           `📍 ${loc || "N/A"}\n` +
           `🏭 ${contactData.industry || industry}\n` +
-          `🔗 ${contactData.linkedinUrl || "No LinkedIn"}\n` +
+          `🔗 ${linkedinUrl || "No LinkedIn"}\n` +
+          `🧲 ${enriched.needSignal || needSignals || "No signals"}\n` +
           `📊 Source: ${contactData.source}\n\n` +
           `${enriched.companyBio || ""}\n\n` +
           `📧 <b>Subject:</b> ${enriched.emailSubject || "N/A"}\n✅ Saved`

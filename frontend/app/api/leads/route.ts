@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       name, email, phone, company, website, title, location, industry,
       source, linkedinUrl, score, icpLabel, companyBio, automationOpportunity,
       leadContext, outreachLine, emailSubject, emailBody, notes, processedAt,
+      needSignals, contactStatus,
     } = body
 
     if (!name) {
@@ -68,6 +69,8 @@ export async function POST(request: Request) {
       emailBody:            emailBody           || null,
       notes:                notes               || null,
       processedAt:          processedAt ? new Date(processedAt) : null,
+      needSignals:          needSignals         || null,
+      contactStatus:        contactStatus       || undefined,
     }
 
     let lead

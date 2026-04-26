@@ -4,7 +4,7 @@ import Link from "next/link"
 import Header from "@/app/components/Header"
 import { motion } from "framer-motion"
 import { fadeUp, transition } from "@/lib/animations"
-import { ArrowRight, Megaphone, TrendingUp, Zap, Bot, Sparkles, Globe, Rocket } from "lucide-react"
+import { ArrowRight, Megaphone, TrendingUp, Zap, Bot, Sparkles, Globe, Rocket, Users2, FlaskConical, ListChecks, SearchIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -47,6 +47,55 @@ const agents = [
     iconBg:       "#ecfdf5",
     tagBorder:    "#a7f3d0",
     tagColor:     "#059669",
+  },
+  {
+    href:         "/crm",
+    generateHref: "/crm",
+    noRunAgent:   true,
+    icon:         Users2,
+    label:        "CRM Agent",
+    description:  "Unified contact management. Merge leads from all agents, track pipeline stages, log activities, and send outreach from one place.",
+    features:     ["Unified contact view", "Pipeline stages", "Activity log", "1-click outreach"],
+    accent:       "#d97706",
+    iconBg:       "#fffbeb",
+    tagBorder:    "#fcd34d",
+    tagColor:     "#d97706",
+  },
+  {
+    href:         "/test",
+    generateHref: "/test/generate",
+    icon:         FlaskConical,
+    label:        "Test Agent",
+    description:  "Provide a platform URL and test descriptions. AI generates Playwright scripts, runs them, analyzes failures, and delivers a complete bug report.",
+    features:     ["AI test planning", "Playwright execution", "Bug report with root cause"],
+    accent:       "#0891b2",
+    iconBg:       "#ecfeff",
+    tagBorder:    "#a5f3fc",
+    tagColor:     "#0891b2",
+  },
+  {
+    href:         "/test",
+    generateHref: "/test/suggest",
+    icon:         ListChecks,
+    label:        "Test Suggester Agent",
+    description:  "Enter any platform URL. AI reads the page and suggests 10–15 practical test cases grouped by category — ready to run in the Test Agent with one click.",
+    features:     ["Auto-reads page content", "Grouped by category", "One-click to Test Agent"],
+    accent:       "#ea580c",
+    iconBg:       "#fff7ed",
+    tagBorder:    "#fed7aa",
+    tagColor:     "#ea580c",
+  },
+  {
+    href:         "/research",
+    generateHref: "/research/generate",
+    icon:         SearchIcon,
+    label:        "Research Agent",
+    description:  "Enter any industry or topic. AI searches the web, analyses market size, trends, competitors, audience, pain points, and opportunities — full research report in minutes.",
+    features:     ["Market size & trends", "Competitor analysis", "Pain points & opportunities"],
+    accent:       "#1e40af",
+    iconBg:       "#eff6ff",
+    tagBorder:    "#bfdbfe",
+    tagColor:     "#1e40af",
   },
 ]
 
@@ -98,8 +147,8 @@ export default function WorkflowPage() {
             transition={{ duration: 0.65, delay: 0.22, ease }}
             className="mt-6 text-lg md:text-xl text-[#7a8899] leading-relaxed max-w-xl"
           >
-            Three specialized agents that research prospects, enrich data, score leads,
-            and craft personalized outreach — all in seconds, not hours.
+            Four specialized agents that research prospects, enrich data, score leads,
+            test platforms, and craft personalized outreach — all in seconds, not hours.
           </motion.p>
 
           {/* CTAs */}
@@ -130,7 +179,7 @@ export default function WorkflowPage() {
             className="flex items-center gap-10 mt-14"
           >
             {[
-              { value: "3", label: "AI Agents" },
+              { value: "4", label: "AI Agents" },
               { value: "10x", label: "Faster Outreach" },
               { value: "GPT-4o", label: "Powered By" },
             ].map((s, i) => (
@@ -259,7 +308,7 @@ export default function WorkflowPage() {
               const Icon = a.icon
               return (
                 <motion.div
-                  key={a.href}
+                  key={a.generateHref}
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: "easeOut", delay: i * 0.1 }}
@@ -292,14 +341,16 @@ export default function WorkflowPage() {
                       </div>
 
                       {/* Spacer */}
-                      <div className="flex-1" />
+                      <div className={"noRunAgent" in a && a.noRunAgent ? "flex-none mt-2" : "flex-1"} />
 
                       {/* CTAs */}
                       <div className="flex flex-col gap-2 mt-3">
-                        <Button asChild className="w-full rounded-xl text-white text-sm font-semibold gap-2 hover:opacity-90 transition-opacity"
-                          style={{ background: a.accent }}>
-                          <Link href={a.generateHref}>Run Agent <ArrowRight className="w-3.5 h-3.5" /></Link>
-                        </Button>
+                        {!("noRunAgent" in a && a.noRunAgent) && (
+                          <Button asChild className="w-full rounded-xl text-white text-sm font-semibold gap-2 hover:opacity-90 transition-opacity"
+                            style={{ background: a.accent }}>
+                            <Link href={a.generateHref}>Run Agent <ArrowRight className="w-3.5 h-3.5" /></Link>
+                          </Button>
+                        )}
                         <Button asChild variant="outline" className="w-full rounded-xl text-sm font-medium"
                           style={{ borderColor: a.tagBorder, color: a.tagColor, background: a.iconBg }}>
                           <Link href={a.href}>View Dashboard</Link>

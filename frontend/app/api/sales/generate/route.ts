@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { enrichContact } from "@/lib/enrichment"
+import { enrichContact, findLinkedInCompany, findLinkedInPeople, detectNeedSignals } from "@/lib/enrichment"
 
 export const maxDuration = 120
 
@@ -39,6 +39,7 @@ interface SalesEnriched {
   painPoint?: string
   salesPitch?: string
   proposalSummary?: string
+  needSignal?: string
   icpScore?: number | string
   icpLabel?: string
   emailSubject?: string
@@ -63,7 +64,8 @@ async function enrichWithOpenAI(
   productService: string,
   idealCustomer: string,
   senderName: string,
-  senderCompany: string
+  senderCompany: string,
+  needSignals: string | null
 ): Promise<SalesEnriched> {
   if (!OPENAI_KEY) return {}
   try {
@@ -92,16 +94,18 @@ async function enrichWithOpenAI(
               `- Industry: ${place.category || place.type || "general"}\n` +
               `- Location: ${place.address || "N/A"}\n` +
               `- Rating: ${place.rating || "N/A"}/5 (${place.ratingCount || 0} reviews)\n` +
-              `- Website: ${place.website || "N/A"}\n\n` +
+              `- Website: ${place.website ? place.website : "NONE"}\n` +
+              `- Active Need Signals: ${needSignals || "None explicitly detected"}\n\n` +
               `Return JSON with these exact keys:\n` +
               `- companyBio: 2 sentences about the company\n` +
-              `- painPoint: 1 sentence — most likely business pain point this company faces\n` +
-              `- salesPitch: 1-2 sentences — direct value proposition for this specific company\n` +
-              `- proposalSummary: 1 sentence — what a proposal to them would look like\n` +
-              `- icpScore: integer 0-100 based on: rating (4.5+=higher), review count (200+=higher), has website (+10), industry fit with product. Vary scores realistically — do NOT give everyone the same number.\n` +
+              `- painPoint: 1 sentence — the most likely sales-related pain this company faces RIGHT NOW (e.g., "Scaling team without a CRM", "Hiring sales reps but no pipeline system")\n` +
+              `- salesPitch: 1-2 sentences — direct value prop for this company, referencing their specific signal\n` +
+              `- proposalSummary: 1 sentence — what a proposal to them would look like given their current situation\n` +
+              `- needSignal: 1-2 sentences on why this company needs ${productService} now. Reference hiring signals, expansion, missing digital tools, or growth bottlenecks.\n` +
+              `- icpScore: integer 0-100. Rules: hiring sales staff in signals = +30; expansion in signals = +20; rating 4.5+ = +10; 200+ reviews = +10; no website = +15 (needs full infrastructure). Baseline 25. Cap 100. Never give everyone 70.\n` +
               `- icpLabel: "Hot" if >=70, "Warm" if 40-69, "Cold" if <40\n` +
-              `- emailSubject: short compelling subject line\n` +
-              `- emailBody: 3 paragraphs, reference their specific business name and location, address their pain point, CTA for 15-min discovery call`,
+              `- emailSubject: sharp subject referencing their growth signal or pain\n` +
+              `- emailBody: 3 paragraphs. Para 1: reference their company name and a specific signal (hiring, expanding). Para 2: exactly how ${productService} solves their current growth bottleneck. Para 3: CTA for 15-min discovery call.`,
           },
         ],
         max_tokens: 900,
@@ -183,7 +187,21 @@ export async function POST(request: Request) {
       const enrichedEmail = contactData.email
       const enrichedPhone = contactData.phone || phone
 
-      const enriched = await enrichWithOpenAI(p, productService, idealCustomer, senderName, senderCompany)
+      // Need signal detection (Serper organic search)
+      const needSignals = await detectNeedSignals(name, loc || location, website)
+      console.log(`[sales] Need signals for ${name}:`, needSignals || "none")
+
+      // LinkedIn discovery (Serper organic search)
+      const [companyLinkedIn, peopleLinkedIns] = await Promise.all([
+        findLinkedInCompany(name),
+        findLinkedInPeople(name),
+      ])
+      // Resolve final linkedinUrl: prefer enrichment provider result, fallback to Serper discovery
+      const linkedinUrl = contactData.linkedinUrl
+        || companyLinkedIn
+        || (peopleLinkedIns.length > 0 ? peopleLinkedIns[0] : null)
+
+      const enriched = await enrichWithOpenAI(p, productService, idealCustomer, senderName, senderCompany, needSignals)
       const score    = Math.min(100, Math.max(0, parseInt(String(enriched.icpScore ?? 20))))
       const icpLabel = enriched.icpLabel || (score >= 70 ? "Hot" : score >= 40 ? "Warm" : "Cold")
 
@@ -204,12 +222,14 @@ export async function POST(request: Request) {
             location:        loc,
             industry:        contactData.industry || industry,
             source:          `serper_maps+${contactData.source}`,
+            linkedinUrl:     linkedinUrl,
             score,
             icpLabel,
             companyBio:      enriched.companyBio      || null,
             painPoint:       enriched.painPoint       || null,
             salesPitch:      enriched.salesPitch      || null,
             proposalSummary: enriched.proposalSummary || null,
+            needSignals:     enriched.needSignal      || needSignals || null,
             emailSubject:    enriched.emailSubject    || null,
             emailBody:       enriched.emailBody       || null,
             notes:           `${contactData.industry || industry} | Rating:${rating ?? "N/A"} | ${loc ?? ""}${contactData.companySize ? " | " + contactData.companySize : ""}`.trim(),
@@ -224,6 +244,8 @@ export async function POST(request: Request) {
           `📧 ${enrichedEmail || "No email"}\n` +
           `📱 ${enrichedPhone || "No phone"}\n` +
           `🌐 ${website || "N/A"}\n` +
+          `🔗 ${linkedinUrl || "No LinkedIn"}\n` +
+          `🧲 ${enriched.needSignal || needSignals || "No signals"}\n` +
           `📊 Source: ${contactData.source}\n` +
           `🎯 ${enriched.painPoint || "N/A"}\n✅ Saved`
         )

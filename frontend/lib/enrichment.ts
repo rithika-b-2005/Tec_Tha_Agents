@@ -433,3 +433,118 @@ export async function enrichContact(
 
   return merged
 }
+
+const SERPER_KEY = process.env.SERPER_API_KEY || ""
+
+/**
+ * Find a company's LinkedIn page using Serper organic search.
+ * Query: site:linkedin.com/company "CompanyName"
+ */
+export async function findLinkedInCompany(companyName: string): Promise<string | null> {
+  if (!SERPER_KEY || !companyName) return null
+  try {
+    const query = `site:linkedin.com/company "${companyName}"`
+    const res = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: { "X-API-KEY": SERPER_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ q: query, num: 3 }),
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const results: Array<{ link?: string }> = data.organic || []
+    for (const r of results) {
+      if (r.link && r.link.includes("linkedin.com/company/")) {
+        return r.link
+      }
+    }
+    return null
+  } catch (e) {
+    console.error("[enrichment] LinkedIn company search error:", e instanceof Error ? e.message : e)
+    return null
+  }
+}
+
+/**
+ * Find decision-maker LinkedIn profiles for a company using Serper organic search.
+ * Returns up to 3 profile URLs.
+ */
+export async function findLinkedInPeople(companyName: string): Promise<string[]> {
+  if (!SERPER_KEY || !companyName) return []
+  try {
+    const query = `site:linkedin.com/in "${companyName}" (CEO OR founder OR "marketing director" OR "sales director" OR "decision maker")`
+    const res = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: { "X-API-KEY": SERPER_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ q: query, num: 5 }),
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    const results: Array<{ link?: string }> = data.organic || []
+    return results
+      .filter(r => r.link && r.link.includes("linkedin.com/in/"))
+      .map(r => r.link!)
+      .slice(0, 3)
+  } catch (e) {
+    console.error("[enrichment] LinkedIn people search error:", e instanceof Error ? e.message : e)
+    return []
+  }
+}
+
+/**
+ * Search for active need signals for a company using Serper organic search.
+ * Returns a human-readable string summarizing detected signals, or null.
+ */
+export async function detectNeedSignals(
+  companyName: string,
+  location: string,
+  website: string | null
+): Promise<string | null> {
+  if (!SERPER_KEY || !companyName) return null
+  try {
+    const signalQuery = `"${companyName}" "${location}" (hiring OR expanding OR "looking for" OR "we are growing" OR "join our team")`
+    const res = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: { "X-API-KEY": SERPER_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ q: signalQuery, num: 5 }),
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+
+    const signals: string[] = []
+
+    const organic: Array<{ title?: string; snippet?: string; link?: string }> = data.organic || []
+    for (const r of organic) {
+      const text = `${r.title || ""} ${r.snippet || ""}`.toLowerCase()
+      if (text.includes("hiring") || text.includes("join our team")) {
+        signals.push("Actively hiring (job postings found)")
+        break
+      }
+    }
+    for (const r of organic) {
+      const text = `${r.title || ""} ${r.snippet || ""}`.toLowerCase()
+      if (text.includes("expanding") || text.includes("new location") || text.includes("opening")) {
+        signals.push("Business expansion detected")
+        break
+      }
+    }
+
+    if (!website) {
+      signals.push("No website detected — high need for digital presence")
+    }
+
+    if (data.answerBox?.snippet) {
+      const ab = data.answerBox.snippet.toLowerCase()
+      if (ab.includes("0 review") || ab.includes("no reviews")) {
+        signals.push("Zero reviews found online — low digital footprint")
+      }
+    }
+
+    return signals.length > 0 ? signals.join("; ") : null
+  } catch (e) {
+    console.error("[enrichment] Need signal detection error:", e instanceof Error ? e.message : e)
+    return null
+  }
+}

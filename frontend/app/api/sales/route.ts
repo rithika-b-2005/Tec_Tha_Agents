@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { name, email, phone, company, website, location, industry,
       source, score, icpLabel, companyBio, painPoint, salesPitch,
-      proposalSummary, emailSubject, emailBody, notes, processedAt } = body
+      proposalSummary, emailSubject, emailBody, notes, processedAt, linkedinUrl, needSignals, contactStatus } = body
     if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 })
 
     const lead = await prisma.salesLead.create({
@@ -40,6 +40,9 @@ export async function POST(request: Request) {
         emailSubject: emailSubject || null, emailBody: emailBody || null,
         notes: notes || null,
         processedAt: processedAt ? new Date(processedAt) : null,
+        linkedinUrl: linkedinUrl || null,
+        needSignals: needSignals || null,
+        contactStatus: contactStatus || undefined,
       },
     })
     return NextResponse.json({ lead }, { status: 201 })

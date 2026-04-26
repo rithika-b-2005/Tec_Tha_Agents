@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -54,6 +53,8 @@ model Lead {
   notes                   String?
   processedAt             DateTime?
   outreachStatus          String?
+  needSignals             String?
+  contactStatus           String?  @default("never")
   createdAt               DateTime @default(now())
 }
 
@@ -77,6 +78,9 @@ model MarketingLead {
   emailBody     String?
   notes         String?
   processedAt   DateTime?
+  linkedinUrl   String?
+  needSignals   String?
+  contactStatus String?  @default("never")
   createdAt     DateTime  @default(now())
 }
 
@@ -100,5 +104,140 @@ model SalesLead {
   emailBody       String?
   notes           String?
   processedAt     DateTime?
+  linkedinUrl     String?
+  needSignals     String?
+  contactStatus   String?  @default("never")
   createdAt       DateTime  @default(now())
+}
+
+model CrmContact {
+  id              String        @id @default(cuid())
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  website         String?
+  location        String?
+  industry        String?
+  linkedinUrl     String?
+  score           Int?
+  icpLabel        String?
+  needSignals     String?
+  companyBio      String?
+  emailSubject    String?
+  emailBody       String?
+  notes           String?
+  pipelineStage   String        @default("new")
+  sources         String[]
+  lastContactedAt DateTime?
+  activities      CrmActivity[]
+  tasks           CrmTask[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model CrmActivity {
+  id          String     @id @default(cuid())
+  contactId   String
+  contact     CrmContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  type        String
+  summary     String
+  createdAt   DateTime   @default(now())
+}
+
+model CrmTask {
+  id          String     @id @default(cuid())
+  contactId   String
+  contact     CrmContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  taskType    String     @default("follow_up")  // follow_up|reminder|email_scheduled
+  scheduledAt DateTime
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model TestRun {
+  id          String       @id @default(cuid())
+  platformUrl String
+  status      String       @default("pending")
+  testCases   String
+  browser     String       @default("chromium")
+  viewport    String       @default("desktop")
+  hasLogin    Boolean      @default(false)
+  loginUser   String?
+  loginPass   String?
+  totalTests  Int          @default(0)
+  passed      Int          @default(0)
+  failed      Int          @default(0)
+  skipped     Int          @default(0)
+  duration    Int?
+  summary     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  results     TestResult[]
+  bugs        TestBug[]
+}
+
+model TestResult {
+  id          String   @id @default(cuid())
+  runId       String
+  run         TestRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  testName    String
+  status      String
+  duration    Int
+  error       String?
+  screenshot  String?
+  steps       String
+  networkLogs String?
+  consoleLogs String?
+  createdAt   DateTime @default(now())
+}
+
+model TestBug {
+  id          String   @id @default(cuid())
+  runId       String
+  run         TestRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  title       String
+  severity    String
+  category    String
+  steps       String
+  expected    String
+  actual      String
+  screenshot  String?
+  aiAnalysis  String
+  suggestion  String
+  testName    String
+  createdAt   DateTime @default(now())
+}
+
+model ResearchReport {
+  id        String   @id @default(cuid())
+  industry  String
+  topic     String?
+  region    String   @default("Global")
+  status    String   @default("pending")
+  sections  String?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VideoProject {
+  id          String   @id @default(cuid())
+  topic       String
+  prompt      String?
+  voiceText   String?
+  style       String   @default("cinematic")
+  duration    Int      @default(3)
+  voiceId     String   @default("21m00Tcm4TlvDq8ikWAM")
+  status      String   @default("queued")
+  replicateId String?
+  videoUrl    String?
+  audioPath   String?
+  finalPath   String?
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
