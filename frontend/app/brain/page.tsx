@@ -446,7 +446,7 @@ export default function BrainPage() {
                       <div className="flex items-center gap-2 min-w-0">
                         <span
                           className="flex items-center justify-center w-7 h-7 rounded-lg shrink-0"
-                          style={catColor}
+                          style={{ backgroundColor: catColor.bg, color: catColor.text }}
                         >
                           {CATEGORY_ICONS[note.category || "other"]}
                         </span>
@@ -573,7 +573,7 @@ export default function BrainPage() {
                     <div className="flex items-center gap-2">
                       <span
                         className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full capitalize"
-                        style={CATEGORY_COLORS[selectedNote.category] || CATEGORY_COLORS.other}
+                        style={{ backgroundColor: (CATEGORY_COLORS[selectedNote.category] || CATEGORY_COLORS.other).bg, color: (CATEGORY_COLORS[selectedNote.category] || CATEGORY_COLORS.other).text }}
                       >
                         {CATEGORY_ICONS[selectedNote.category]}
                         {selectedNote.category}

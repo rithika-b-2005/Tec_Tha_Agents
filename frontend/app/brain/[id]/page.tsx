@@ -237,7 +237,7 @@ export default function NoteDetailPage({ params }: { params: Promise<{ id: strin
               <div className="flex items-center gap-3 mb-4">
                 <span
                   className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full capitalize"
-                  style={catColor}
+                  style={{ backgroundColor: catColor.bg, color: catColor.text }}
                 >
                   {CATEGORY_ICONS[note.category || "other"]}
                   {note.category || "other"}
@@ -450,7 +450,7 @@ export default function NoteDetailPage({ params }: { params: Promise<{ id: strin
                           <div className="flex items-center gap-1.5 mb-1">
                             <span
                               className="flex items-center justify-center w-5 h-5 rounded text-[10px]"
-                              style={rc}
+                              style={{ backgroundColor: rc.bg, color: rc.text }}
                             >
                               {CATEGORY_ICONS[r.category || "other"]}
                             </span>

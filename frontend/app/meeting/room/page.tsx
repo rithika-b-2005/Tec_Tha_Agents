@@ -132,7 +132,7 @@ function RoomInner() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  function leaveMeeting() { window.close() || history.back() }
+  function leaveMeeting() { window.close(); history.back() }
 
   if (loading) return (
     <div className="flex items-center justify-center h-screen bg-[#f3f4f6]">

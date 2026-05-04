@@ -51,7 +51,7 @@ export async function POST(
 
     await prisma.marketingLead.update({
       where: { id },
-      data:  { outreachStatus: "email_sent" },
+      data:  { contactStatus: "whatsapp_sent" },
     })
 
     return NextResponse.json({ sent: true, sid: data.sid })

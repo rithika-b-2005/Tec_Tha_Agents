@@ -79,8 +79,8 @@ If the knowledge base doesn't contain relevant information, say so clearly.`,
       const idMatches = idLineMatch[1].match(/\[([^\]]+)\]/g)
       if (idMatches) {
         relevantNotes = idMatches
-          .map((m) => m.replace(/[\[\]]/g, "").trim())
-          .filter((id) => usedNoteIds.includes(id))
+          .map((m: string) => m.replace(/[\[\]]/g, "").trim())
+          .filter((id: string) => usedNoteIds.includes(id))
       }
     }
 

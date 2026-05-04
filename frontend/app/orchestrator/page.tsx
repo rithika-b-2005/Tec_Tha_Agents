@@ -94,7 +94,7 @@ function StepCard({ step, index }: { step: Step; index: number }) {
               <pre className="text-xs text-gray-600 whitespace-pre-wrap mt-3 leading-relaxed font-mono bg-gray-50 rounded-lg p-3">
                 {step.result}
               </pre>
-              {step.input && Object.keys(step.input as object).length > 0 && (
+              {!!(step.input && Object.keys(step.input as object).length > 0) && (
                 <details className="mt-2">
                   <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">View input</summary>
                   <pre className="text-xs text-gray-500 whitespace-pre-wrap mt-1 font-mono bg-gray-50 rounded p-2">

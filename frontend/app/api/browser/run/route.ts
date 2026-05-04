@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     )
   }
 
-  let body: { instruction?: string; url?: string; extractType?: string }
+  let body: { instruction?: string; url?: string; extractType?: string; viewport?: string; fullPage?: boolean }
   try { body = await request.json() }
   catch { return new Response(`data: ${JSON.stringify({ type: "error", message: "Invalid JSON" })}\n\n`, { headers: { "Content-Type": "text/event-stream" } }) }
 
