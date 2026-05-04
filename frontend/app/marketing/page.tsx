@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import {
   Plus, RefreshCw, Mail, Globe, MapPin, Building2,
   ExternalLink, X, ChevronRight, Trash2, Megaphone, ArrowLeft,
+  Share2, MessageCircle, CalendarClock, Loader2, CheckCircle2,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { fadeUp, transition } from "@/lib/animations"
@@ -63,6 +64,8 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant="outline" className={`text-xs ${cls}`}>{label}</Badge>
 }
 
+interface FollowUpEmail { day: number; subject: string; body: string }
+
 export default function MarketingDashboard() {
   const [leads, setLeads]                   = useState<MarketingLead[]>([])
   const [loading, setLoading]               = useState(true)
@@ -71,6 +74,10 @@ export default function MarketingDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [filter, setFilter]                 = useState<Filter>("all")
   const [selected, setSelected]             = useState<MarketingLead | null>(null)
+  const [waLoading, setWaLoading]           = useState(false)
+  const [waSent, setWaSent]                 = useState<string | null>(null)
+  const [followupLoading, setFollowupLoading] = useState(false)
+  const [followupEmails, setFollowupEmails] = useState<FollowUpEmail[] | null>(null)
 
   const fetchLeads = useCallback(async (silent = false) => {
     if (silent) setRefreshing(true); else setLoading(true)
@@ -98,6 +105,37 @@ export default function MarketingDashboard() {
       setSelected(null)
     } finally {
       setClearing(false)
+    }
+  }
+
+  async function sendWhatsApp(leadId: string) {
+    setWaLoading(true)
+    setWaSent(null)
+    try {
+      const res = await fetch(`/api/marketing/${leadId}/whatsapp`, { method: "POST" })
+      const data = await res.json() as { sent?: boolean; error?: string }
+      if (data.sent) {
+        setWaSent("sent")
+        await fetchLeads(true)
+      } else {
+        setWaSent(data.error ?? "Failed to send")
+      }
+    } catch {
+      setWaSent("Network error")
+    } finally {
+      setWaLoading(false)
+    }
+  }
+
+  async function generateFollowup(leadId: string) {
+    setFollowupLoading(true)
+    setFollowupEmails(null)
+    try {
+      const res = await fetch(`/api/marketing/${leadId}/followup`, { method: "POST" })
+      const data = await res.json() as { emails?: FollowUpEmail[]; error?: string }
+      if (data.emails) setFollowupEmails(data.emails)
+    } finally {
+      setFollowupLoading(false)
     }
   }
 
@@ -166,8 +204,17 @@ export default function MarketingDashboard() {
             )}
             <Button
               asChild
+              variant="outline"
+              className="rounded-xl text-sm font-semibold h-9 px-4 gap-1.5 border-[#e9d5ff] text-[#a855f7] bg-[#faf5ff] hover:bg-[#ede9fe]"
+            >
+              <Link href="/marketing/linkedin">
+                <Share2 className="w-4 h-4" /> LinkedIn
+              </Link>
+            </Button>
+            <Button
+              asChild
               className="rounded-xl text-white text-sm font-semibold h-9 px-4 gap-1.5"
-              style={{ background: "#7c3aed" }}
+              style={{ background: "#a855f7" }}
             >
               <Link href="/marketing/generate">
                 <Plus className="w-4 h-4" /> Find Prospects
@@ -201,7 +248,7 @@ export default function MarketingDashboard() {
               onClick={() => setFilter(t.key)}
               className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 filter === t.key
-                  ? "bg-[#7c3aed] text-white"
+                  ? "bg-[#a855f7] text-white"
                   : "bg-white border border-[#e0e0e0] text-gray-600 hover:border-violet-400 hover:text-violet-600"
               }`}
             >
@@ -227,7 +274,7 @@ export default function MarketingDashboard() {
                   {filter === "all" ? "No prospects yet" : `No ${filter} prospects`}
                 </p>
                 <p className="text-sm text-gray-400 mb-5">Find businesses to target with your marketing campaigns</p>
-                <Button asChild className="rounded-xl text-white text-sm font-semibold h-9 px-4 gap-1.5" style={{ background: "#7c3aed" }}>
+                <Button asChild className="rounded-xl text-white text-sm font-semibold h-9 px-4 gap-1.5" style={{ background: "#a855f7" }}>
                   <Link href="/marketing/generate"><Plus className="w-4 h-4" /> Find Prospects</Link>
                 </Button>
               </div>
@@ -285,7 +332,7 @@ export default function MarketingDashboard() {
                                 <Globe className="w-3.5 h-3.5" />
                               </a>
                             )}
-                            <button onClick={() => setSelected(lead)}
+                            <button onClick={() => { setSelected(lead); setWaSent(null); setFollowupEmails(null) }}
                               className="text-gray-400 hover:text-violet-600 transition-colors">
                               <ChevronRight className="w-3.5 h-3.5" />
                             </button>
@@ -422,6 +469,62 @@ export default function MarketingDashboard() {
                   </div>
                 </div>
               )}
+              {/* WhatsApp + Follow-up actions */}
+              <Separator className="bg-[#f0f2f5]" />
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</p>
+
+                {/* WhatsApp */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => { setWaSent(null); sendWhatsApp(selected.id) }}
+                    disabled={waLoading || !selected.phone}
+                    className="w-full flex items-center justify-center gap-2 h-9 rounded-xl border border-[#e0e0e0] text-sm font-medium text-gray-700 hover:border-green-400 hover:text-green-600 hover:bg-green-50 transition-colors disabled:opacity-40"
+                  >
+                    {waLoading
+                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending…</>
+                      : <><MessageCircle className="w-3.5 h-3.5" /> Send WhatsApp</>
+                    }
+                  </button>
+                  {waSent && (
+                    <p className={`text-xs text-center ${waSent === "sent" ? "text-green-600" : "text-red-500"}`}>
+                      {waSent === "sent" ? "✓ WhatsApp sent!" : waSent}
+                    </p>
+                  )}
+                  {!selected.phone && (
+                    <p className="text-xs text-gray-400 text-center">No phone number — WhatsApp unavailable</p>
+                  )}
+                </div>
+
+                {/* Follow-up sequence */}
+                <button
+                  onClick={() => generateFollowup(selected.id)}
+                  disabled={followupLoading}
+                  className="w-full flex items-center justify-center gap-2 h-9 rounded-xl border border-[#e0e0e0] text-sm font-medium text-gray-700 hover:border-[#a855f7]/40 hover:text-[#a855f7] hover:bg-[#faf5ff] transition-colors disabled:opacity-40"
+                >
+                  {followupLoading
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
+                    : <><CalendarClock className="w-3.5 h-3.5" /> Generate Follow-up Sequence</>
+                  }
+                </button>
+
+                {/* Follow-up emails display */}
+                {followupEmails && (
+                  <div className="space-y-3 mt-2">
+                    <p className="text-xs font-semibold text-[#a855f7]">3-Email Follow-up Sequence</p>
+                    {followupEmails.map((email, i) => (
+                      <div key={i} className="bg-[#f9fafb] border border-[#e8edf5] rounded-xl p-3 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-[#a855f7] uppercase tracking-wide">Day {email.day}</span>
+                          <CheckCircle2 className="w-3 h-3 text-green-400" />
+                        </div>
+                        <p className="text-xs font-semibold text-gray-800">{email.subject}</p>
+                        <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{email.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

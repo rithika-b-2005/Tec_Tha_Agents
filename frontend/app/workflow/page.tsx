@@ -4,7 +4,7 @@ import Link from "next/link"
 import Header from "@/app/components/Header"
 import { motion } from "framer-motion"
 import { fadeUp, transition } from "@/lib/animations"
-import { ArrowRight, Megaphone, TrendingUp, Zap, Bot, Sparkles, Globe, Rocket, Users2, FlaskConical, ListChecks, SearchIcon } from "lucide-react"
+import { ArrowRight, Megaphone, TrendingUp, Zap, Bot, Sparkles, Globe, Rocket, Users2, FlaskConical, ListChecks, SearchIcon, Network, Briefcase, Phone, CalendarDays } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 const ease = [0.22, 1, 0.36, 1] as const
 
 const agents = [
+  // — Run Agent agents —
   {
     href:         "/leads",
     generateHref: "/leads/generate",
@@ -31,10 +32,10 @@ const agents = [
     label:        "Marketing Agent",
     description:  "Discover prospects, generate campaign ideas, content angles, and ad hooks — then send a tailored marketing outreach email.",
     features:     ["Campaign ideas", "Content angles", "Ad copy hooks"],
-    accent:       "#7c3aed",
-    iconBg:       "#f5f3ff",
-    tagBorder:    "#ddd6fe",
-    tagColor:     "#7c3aed",
+    accent:       "#a855f7",
+    iconBg:       "#faf5ff",
+    tagBorder:    "#e9d5ff",
+    tagColor:     "#a855f7",
   },
   {
     href:         "/sales",
@@ -47,19 +48,6 @@ const agents = [
     iconBg:       "#ecfdf5",
     tagBorder:    "#a7f3d0",
     tagColor:     "#059669",
-  },
-  {
-    href:         "/crm",
-    generateHref: "/crm",
-    noRunAgent:   true,
-    icon:         Users2,
-    label:        "CRM Agent",
-    description:  "Unified contact management. Merge leads from all agents, track pipeline stages, log activities, and send outreach from one place.",
-    features:     ["Unified contact view", "Pipeline stages", "Activity log", "1-click outreach"],
-    accent:       "#d97706",
-    iconBg:       "#fffbeb",
-    tagBorder:    "#fcd34d",
-    tagColor:     "#d97706",
   },
   {
     href:         "/test",
@@ -92,10 +80,73 @@ const agents = [
     label:        "Research Agent",
     description:  "Enter any industry or topic. AI searches the web, analyses market size, trends, competitors, audience, pain points, and opportunities — full research report in minutes.",
     features:     ["Market size & trends", "Competitor analysis", "Pain points & opportunities"],
-    accent:       "#1e40af",
-    iconBg:       "#eff6ff",
-    tagBorder:    "#bfdbfe",
-    tagColor:     "#1e40af",
+    accent:       "#6366f1",
+    iconBg:       "#eef2ff",
+    tagBorder:    "#c7d2fe",
+    tagColor:     "#6366f1",
+  },
+  {
+    href:         "/recruitment",
+    generateHref: "/recruitment/generate",
+    icon:         Briefcase,
+    label:        "Recruitment Agent",
+    description:  "Paste a job description — AI searches LinkedIn, Internshala, Naukri, GitHub, and Wellfound to find matching candidates, scores them, and drafts personalized outreach.",
+    features:     ["Multi-platform search", "Skills match scoring", "Personalized outreach drafts"],
+    accent:       "#db2777",
+    iconBg:       "#fdf2f8",
+    tagBorder:    "#fbcfe8",
+    tagColor:     "#db2777",
+  },
+  {
+    href:         "/workflow",
+    generateHref: "/orchestrator",
+    icon:         Network,
+    label:        "AI Orchestrator",
+    description:  "One goal, all agents. Describe what you want — the orchestrator runs Research → Lead Gen → CRM Sync automatically in the right order.",
+    features:     ["Multi-agent pipeline", "Auto-sequencing", "Full pipeline in one command"],
+    accent:       "#f43f5e",
+    iconBg:       "#fff1f2",
+    tagBorder:    "#fecdd3",
+    tagColor:     "#f43f5e",
+  },
+  // — View Dashboard only agents (bottom 6) —
+  {
+    href:         "/crm",
+    generateHref: "/crm",
+    noRunAgent:   true,
+    icon:         Users2,
+    label:        "CRM Agent",
+    description:  "Unified contact management. Merge leads from all agents, track pipeline stages, log activities, and send outreach from one place.",
+    features:     ["Unified contact view", "Pipeline stages", "Activity log", "1-click outreach"],
+    accent:       "#d97706",
+    iconBg:       "#fffbeb",
+    tagBorder:    "#fcd34d",
+    tagColor:     "#d97706",
+  },
+  {
+    href:         "/voice",
+    generateHref: "/voice",
+    noRunAgent:   true,
+    icon:         Phone,
+    label:        "Voice Agent",
+    description:  "AI makes outbound calls to your leads. Priya — female, casual, Indian — has real conversations, qualifies leads, and books discovery calls automatically.",
+    features:     ["ElevenLabs natural voice", "Groq conversation AI", "Full transcript saved to CRM"],
+    accent:       "#7c3aed",
+    iconBg:       "#f5f3ff",
+    tagBorder:    "#ddd6fe",
+    tagColor:     "#7c3aed",
+  },
+  {
+    href:         "/classes",
+    generateHref: "/classes/run",
+    icon:         CalendarDays,
+    label:        "Class Scheduler Agent",
+    description:  "Schedule classes with a title, date, time, location, and attendee emails. Agent auto-sends professional invite emails to every attendee the moment you book.",
+    features:     ["Auto email invites", "Track upcoming & past", "Mark completed"],
+    accent:       "#0ea5e9",
+    iconBg:       "#f0f9ff",
+    tagBorder:    "#bae6fd",
+    tagColor:     "#0284c7",
   },
 ]
 

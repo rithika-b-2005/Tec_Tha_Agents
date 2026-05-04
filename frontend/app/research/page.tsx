@@ -7,7 +7,7 @@ import { Plus, ArrowLeft, Search, Loader2, ArrowRight, Globe } from "lucide-reac
 import Header from "@/app/components/Header"
 import { Button } from "@/components/ui/button"
 
-const ACCENT = "#1e40af"
+const ACCENT = "#6366f1"
 
 interface Report {
   id: string
@@ -103,7 +103,7 @@ export default function ResearchPage() {
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: r.status === "done" ? "#eff6ff" : r.status === "failed" ? "#fee2e2" : "#f0f9ff" }}>
+                        style={{ background: r.status === "done" ? "#eef2ff" : r.status === "failed" ? "#fee2e2" : "#f0f9ff" }}>
                         {isRunning
                           ? <Loader2 className="w-5 h-5 animate-spin" style={{ color: ACCENT }} />
                           : r.status === "done"
@@ -128,7 +128,7 @@ export default function ResearchPage() {
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="text-xs font-medium px-2.5 py-1 rounded-full"
                         style={r.status === "done"
-                          ? { background: "#dbeafe", color: ACCENT }
+                          ? { background: "#c7d2fe", color: ACCENT }
                           : r.status === "failed"
                           ? { background: "#fee2e2", color: "#991b1b" }
                           : { background: "#f0f9ff", color: "#0369a1" }

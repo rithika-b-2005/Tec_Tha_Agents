@@ -23,6 +23,41 @@ function header(title: string, subtitle = "") {
   </div>`
 }
 
+export async function sendClassInviteEmail(
+  to: string,
+  classTitle: string,
+  date: string,
+  time: string,
+  location: string | null | undefined,
+  description: string | null | undefined
+) {
+  const locationLine = location
+    ? `<p style="margin:4px 0 0;font-size:13px;color:#374151;"><strong>Where:</strong> ${location}</p>`
+    : ""
+  const descLine = description
+    ? `<p style="margin:12px 0 0;font-size:14px;color:#374151;line-height:1.7;">${description}</p>`
+    : ""
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `Class Scheduled: ${classTitle} on ${date} at ${time}`,
+    html: wrap(`
+      ${header("Class Scheduled", classTitle)}
+      <div style="background:#fff;padding:28px 32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
+        <p style="margin:0;font-size:14px;color:#374151;">You have been invited to the following class:</p>
+        <div style="margin:16px 0;padding:16px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+          <p style="margin:0;font-size:16px;font-weight:600;color:#111827;">${classTitle}</p>
+          <p style="margin:6px 0 0;font-size:13px;color:#374151;"><strong>When:</strong> ${date} at ${time}</p>
+          ${locationLine}
+          ${descLine}
+        </div>
+        <p style="margin:0;font-size:13px;color:#6b7280;">This is an automated notification from Tec Tha Class Scheduler.</p>
+      </div>
+    `),
+  })
+}
+
 export async function sendColdOutreachEmail(
   to: string,
   subject: string,

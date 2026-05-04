@@ -528,7 +528,7 @@ export default function CrmPage() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
-          <Link href="/workflow" className="text-[#7a8899] hover:text-[#276ef1] text-sm mb-4 inline-block">
+          <Link href="/workflow" className="text-[#7a8899] hover:text-[#d97706] text-sm mb-4 inline-block">
             ← Back to Workflow
           </Link>
           <div className="flex items-start justify-between gap-4">
@@ -556,7 +556,7 @@ export default function CrmPage() {
               <Button
                 onClick={handleSync}
                 disabled={syncing}
-                className="bg-[#276ef1] hover:bg-[#1e55d4] text-white rounded-xl flex-shrink-0"
+                className="bg-[#d97706] hover:bg-[#b45309] text-white rounded-xl flex-shrink-0"
               >
                 <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
                 {syncing ? "Syncing..." : "Sync All"}
@@ -591,7 +591,7 @@ export default function CrmPage() {
               }}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 stageFilter === stage.key
-                  ? "bg-[#276ef1] text-white"
+                  ? "bg-[#d97706] text-white"
                   : "bg-white border border-[#e0e0e0] text-gray-600 hover:bg-gray-50"
               }`}
             >
@@ -770,7 +770,7 @@ export default function CrmPage() {
                         </td>
                         <td className="px-6 py-4 text-sm">
                           {contact.email ? (
-                            <a href={`mailto:${contact.email}`} className="text-[#276ef1] hover:underline">
+                            <a href={`mailto:${contact.email}`} className="text-[#d97706] hover:underline">
                               {contact.email}
                             </a>
                           ) : (
@@ -807,7 +807,7 @@ export default function CrmPage() {
                               setSelectedContact(contact)
                               setNotesValue(contact.notes || "")
                             }}
-                            className="text-[#276ef1] hover:text-[#1e55d4] transition-colors"
+                            className="text-[#d97706] hover:text-[#b45309] transition-colors"
                           >
                             <ChevronRight className="h-5 w-5" />
                           </button>
@@ -914,8 +914,8 @@ export default function CrmPage() {
             <div className="space-y-4 mb-6">
               {selectedContact.email && (
                 <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-[#276ef1]" />
-                  <a href={`mailto:${selectedContact.email}`} className="text-[#276ef1] hover:underline text-sm break-all">
+                  <Mail className="h-4 w-4 text-[#d97706]" />
+                  <a href={`mailto:${selectedContact.email}`} className="text-[#d97706] hover:underline text-sm break-all">
                     {selectedContact.email}
                   </a>
                 </div>
@@ -927,22 +927,22 @@ export default function CrmPage() {
               )}
               {selectedContact.location && (
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-4 w-4 text-[#276ef1]" />
+                  <MapPin className="h-4 w-4 text-[#d97706]" />
                   <span className="text-sm text-gray-600">{selectedContact.location}</span>
                 </div>
               )}
               {selectedContact.website && (
                 <div className="flex items-center gap-3">
-                  <Globe className="h-4 w-4 text-[#276ef1]" />
-                  <a href={selectedContact.website} target="_blank" rel="noopener noreferrer" className="text-[#276ef1] hover:underline text-sm truncate">
+                  <Globe className="h-4 w-4 text-[#d97706]" />
+                  <a href={selectedContact.website} target="_blank" rel="noopener noreferrer" className="text-[#d97706] hover:underline text-sm truncate">
                     {selectedContact.website}
                   </a>
                 </div>
               )}
               {selectedContact.linkedinUrl && (
                 <div className="flex items-center gap-3">
-                  <ExternalLink className="h-4 w-4 text-[#276ef1]" />
-                  <a href={selectedContact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[#276ef1] hover:underline text-sm truncate">
+                  <ExternalLink className="h-4 w-4 text-[#d97706]" />
+                  <a href={selectedContact.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[#d97706] hover:underline text-sm truncate">
                     LinkedIn
                   </a>
                 </div>
@@ -967,7 +967,7 @@ export default function CrmPage() {
                 <button
                   onClick={() => handleGenerateEmail(selectedContact.id)}
                   disabled={generatingEmail}
-                  className="flex items-center gap-1 text-xs text-[#276ef1] hover:underline disabled:opacity-50"
+                  className="flex items-center gap-1 text-xs text-[#d97706] hover:underline disabled:opacity-50"
                 >
                   <Wand2 className="h-3 w-3" />
                   {generatingEmail ? "Generating..." : selectedContact.emailSubject ? "Regenerate" : "Generate"}
@@ -992,7 +992,7 @@ export default function CrmPage() {
                       <button
                         onClick={() => handleSendEmail(selectedContact.id, selectedContact.email!, selectedContact.emailSubject!, selectedContact.emailBody!)}
                         disabled={sendingEmail}
-                        className="flex-1 h-9 rounded-lg bg-[#276ef1] hover:bg-[#1e55d4] text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+                        className="flex-1 h-9 rounded-lg bg-[#d97706] hover:bg-[#b45309] text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
                       >
                         <Mail className="h-3.5 w-3.5" />
                         {sendingEmail ? "Sending..." : "Send Email"}
@@ -1020,7 +1020,7 @@ export default function CrmPage() {
               ) : (
                 <div className="bg-[#f9fafb] border border-[#e8edf5] rounded-xl px-4 py-6 text-center">
                   <p className="text-sm text-gray-400">No email draft yet.</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Click <span className="text-[#276ef1]">Generate</span> to create one with AI.</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Click <span className="text-[#d97706]">Generate</span> to create one with AI.</p>
                 </div>
               )}
             </div>
@@ -1039,7 +1039,7 @@ export default function CrmPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleUpdateNotes(selectedContact.id, notesValue)}
-                      className="px-3 py-2 bg-[#276ef1] text-white text-sm rounded hover:bg-[#1e55d4]"
+                      className="px-3 py-2 bg-[#d97706] text-white text-sm rounded hover:bg-[#b45309]"
                     >
                       Save
                     </button>
@@ -1068,7 +1068,7 @@ export default function CrmPage() {
             <Button
               onClick={() => handleEnrich(selectedContact.id)}
               disabled={enriching}
-              className="w-full mb-6 bg-[#276ef1] hover:bg-[#1e55d4] text-white"
+              className="w-full mb-6 bg-[#d97706] hover:bg-[#b45309] text-white"
             >
               <Sparkles className="mr-2 h-4 w-4" />
               {enriching ? "Enriching..." : "Enrich Contact"}
@@ -1135,7 +1135,7 @@ export default function CrmPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleCreateTask(selectedContact.id)}
-                      className="px-3 py-2 bg-[#276ef1] text-white text-sm rounded hover:bg-[#1e55d4]"
+                      className="px-3 py-2 bg-[#d97706] text-white text-sm rounded hover:bg-[#b45309]"
                     >
                       Create
                     </button>

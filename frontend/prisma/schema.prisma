@@ -241,3 +241,141 @@ model VideoProject {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model RecruitmentJob {
+  id            String                 @id @default(cuid())
+  title         String
+  description   String
+  skills        String[]
+  location      String?
+  experience    String?
+  jobType       String?
+  parsedAt      DateTime               @default(now())
+  candidates    RecruitmentCandidate[]
+  createdAt     DateTime               @default(now())
+}
+
+model RecruitmentCandidate {
+  id              String          @id @default(cuid())
+  jobId           String
+  job             RecruitmentJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  name            String
+  profileUrl      String
+  platform        String
+  currentRole     String?
+  location        String?
+  skills          String[]
+  snippet         String?
+  matchScore      Int?
+  matchLabel      String?
+  outreachMessage String?
+  status          String          @default("new")
+  createdAt       DateTime        @default(now())
+}
+
+model VoiceCall {
+  id           String   @id @default(cuid())
+  leadId       String
+  leadName     String
+  leadPhone    String
+  leadCompany  String?
+  status       String   @default("initiated") // initiated|in_progress|completed|failed|no_answer
+  callSid      String?
+  duration     Int?
+  transcript   String?
+  outcome      String?  // interested|not_interested|callback|voicemail|no_answer
+  callbackTime String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Document {
+  id        String            @id @default(cuid())
+  name      String
+  type      String            // pdf | txt | docx
+  size      Int
+  content   String            // extracted text
+  summary   String?
+  messages  DocumentMessage[]
+  createdAt DateTime          @default(now())
+}
+
+model DocumentMessage {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  role       String   // user | assistant
+  content    String
+  createdAt  DateTime @default(now())
+}
+
+model DailyBrief {
+  id        String    @id @default(cuid())
+  date      String    // YYYY-MM-DD
+  news      String?
+  weather   String?
+  topLeads  String?
+  tip       String?
+  fullBrief String?
+  sentAt    DateTime?
+  status    String    @default("pending") // pending|sent|failed
+  createdAt DateTime  @default(now())
+}
+
+model BrainNote {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  summary   String?
+  tags      String[]
+  category  String?  // idea | article | meeting | note | research | other
+  source    String?  // url if from web
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BrowserTask {
+  id          String   @id @default(cuid())
+  instruction String
+  url         String
+  status      String   @default("pending") // pending|running|completed|failed
+  steps       String?  // JSON array of steps executed
+  result      String?  // extracted data / summary
+  error       String?
+  screenshot  String?  // base64
+  createdAt   DateTime @default(now())
+}
+
+model ChatMessage {
+  id        String     @id @default(cuid())
+  sender    String
+  text      String
+  groupId   String?
+  group     ChatGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+}
+
+model ChatGroup {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  members     String[]
+  createdBy   String
+  messages    ChatMessage[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ScheduledClass {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        String   // YYYY-MM-DD
+  time        String   // HH:MM
+  location    String?  // physical address or meeting link
+  attendees   String[] // email addresses
+  status      String   @default("scheduled") // scheduled|cancelled|completed
+  emailSent   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
