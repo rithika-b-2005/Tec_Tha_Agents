@@ -168,13 +168,12 @@ export default function VoiceDashboard() {
   }, [calls, fetchCalls])
 
   async function handleCall(call: VoiceCall) {
-    const leadId = call.leadId
-    setCallingLeadId(leadId)
+    setCallingLeadId(call.id)
     try {
       const res = await fetch("/api/voice/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, leadSource }),
+        body: JSON.stringify({ phone: call.leadPhone, name: call.leadName }),
       })
       if (!res.ok) {
         const err = await res.json()
@@ -218,13 +217,16 @@ export default function VoiceDashboard() {
     }
   }
 
-  async function handleInitiateCall(leadId: string) {
-    setCallingLeadId(leadId)
+  async function handleInitiateCall(call: VoiceCall) {
+    setCallingLeadId(call.id)
     try {
+      const body = call.leadId === "direct" || !call.leadId
+        ? { phone: call.leadPhone, name: call.leadName }
+        : { leadId: call.leadId, leadSource }
       const res = await fetch("/api/voice/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, leadSource }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) {
         const err = await res.json()
@@ -486,7 +488,7 @@ export default function VoiceDashboard() {
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                          {callingLeadId === call.leadId ? (
+                          {callingLeadId === call.id ? (
                             <Button size="sm" disabled className="gap-1.5 text-xs bg-[#16a34a]/80">
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               In call...
@@ -494,7 +496,7 @@ export default function VoiceDashboard() {
                           ) : (
                             <Button
                               size="sm"
-                              onClick={() => handleInitiateCall(call.leadId)}
+                              onClick={() => handleInitiateCall(call)}
                               className="gap-1.5 text-xs bg-[#16a34a] hover:bg-[#16a34a]/90"
                             >
                               <Phone className="w-3.5 h-3.5" />
@@ -637,10 +639,10 @@ export default function VoiceDashboard() {
           <div className="px-6 py-4 border-t border-black/[0.06]">
             <Button
               className="w-full gap-2 bg-[#16a34a] hover:bg-[#16a34a]/90"
-              onClick={() => handleInitiateCall(selected.leadId)}
-              disabled={callingLeadId === selected.leadId || selected.status === "in_progress"}
+              onClick={() => handleInitiateCall(selected)}
+              disabled={callingLeadId === selected.id || selected.status === "in_progress"}
             >
-              {callingLeadId === selected.leadId ? (
+              {callingLeadId === selected.id ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Calling...</>
               ) : (
                 <><Phone className="w-4 h-4" /> Call Again</>

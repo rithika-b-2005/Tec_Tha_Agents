@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     })
 
     // Build TwiML webhook URL
-    const twimlUrl = `${BASE_URL}/api/voice/twiml?callRecordId=${voiceCall.id}&leadId=${leadId}&leadSource=${leadSource}`
+    const twimlUrl = `${BASE_URL}/api/voice/twiml?callRecordId=${voiceCall.id}&leadId=${lead.id}&leadSource=${leadSource}`
     const statusCallbackUrl = `${BASE_URL}/api/voice/status`
 
     // Call Twilio REST API to initiate outbound call
